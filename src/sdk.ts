@@ -1012,7 +1012,7 @@ export class OpenSeaSDK {
     accountAddress: string;
     recipientAddress?: string;
     domain?: string;
-  }): Promise<string> {
+  }): Promise<any> {
     const isPrivateListing = !!order.taker;
     if (isPrivateListing) {
       if (recipientAddress) {
@@ -1020,36 +1020,38 @@ export class OpenSeaSDK {
           "Private listings cannot be fulfilled with a recipient address"
         );
       }
-      return this.fulfillPrivateOrder({
-        order,
-        accountAddress,
-        domain,
-      });
+      // return this.fulfillPrivateOrder({
+      //   order,
+      //   accountAddress,
+      //   domain,
+      // });
     }
 
-    let transactionHash: string;
+    // let transactionHash: string;
+    let encodedData;
     switch (order.protocolAddress) {
       case CROSS_CHAIN_SEAPORT_ADDRESS: {
-        const { executeAllActions } = await this.seaport.fulfillOrder({
+        encodedData = await this.seaport.fulfillOrder({
           order: order.protocolData,
           accountAddress,
           recipientAddress,
           domain,
         });
-        const transaction = await executeAllActions();
-        transactionHash = transaction.hash;
+        // const transaction = await executeAllActions();
+        // transactionHash = transaction.hash;
         break;
       }
       default:
         throw new Error("Unsupported protocol");
     }
 
-    await this._confirmTransaction(
-      transactionHash,
-      EventType.MatchOrders,
-      "Fulfilling order"
-    );
-    return transactionHash;
+    return encodedData;
+    // await this._confirmTransaction(
+    //   transactionHash,
+    //   EventType.MatchOrders,
+    //   "Fulfilling order"
+    // );
+    // return transactionHash;
   }
 
   /**
